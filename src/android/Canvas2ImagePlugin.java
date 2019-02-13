@@ -38,6 +38,9 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
     public static final int WRITE_PERM_REQUEST_CODE = 1;
     private CallbackContext callbackContext;
     private Bitmap bmp;
+		private String extension;
+		private Stirng strQuality;
+		private String picFolder;
 
 	@Override
 	public boolean execute(String action, JSONArray data,
@@ -46,6 +49,12 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 		if (action.equals(ACTION)) {
 
 			String base64 = data.optString(0);
+			this.extension = data.optString(1);
+			this.strQuality = data.optString(2);
+			this.picfolder = Environment.DIRECTORY_PICTURES;
+			boolean add2Galery = true; // Why is this here, it's never used?
+			if (data.length() > 3) picfolder = data.optString(3);
+			if (data.length() > 4) add2Galery = Boolean.valueOf(data.optString(4)); // Why is this here, it's never used?
 			if (base64.equals("")) // isEmpty() requires API level 9
 				callbackContext.error("Missing base64 string");
 
@@ -70,21 +79,29 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 		}
 	}
 
-    private void askPermissionAndSave() {
+  private void askPermissionAndSave() {
 
-        if (PermissionHelper.hasPermission(this, WRITE_EXTERNAL_STORAGE)) {
-            Log.d("SaveImage", "Permissions already granted, or Android version is lower than 6");
-            savePhoto();
-        } else {
-            Log.d("SaveImage", "Requesting permissions for WRITE_EXTERNAL_STORAGE");
-            PermissionHelper.requestPermission(this, WRITE_PERM_REQUEST_CODE, WRITE_EXTERNAL_STORAGE);
-        }
+		if (PermissionHelper.hasPermission(this, WRITE_EXTERNAL_STORAGE)) {
+    	Log.d("SaveImage", "Permissions already granted, or Android version is lower than 6");
+			savePhoto();
+		} else {
+			Log.d("SaveImage", "Requesting permissions for WRITE_EXTERNAL_STORAGE");
+			PermissionHelper.requestPermission(this, WRITE_PERM_REQUEST_CODE, WRITE_EXTERNAL_STORAGE);
+		}
+	}
+	
+	private int getQuality(String strQuality){
+		int result=100;
+		try {
+		    result=Integer.valueOf(strQuality);
+		    if (result> 100) result=100;
+		    if (result < 1) result=1;
+		} catch (Exception e){}		
+		return result;
 	}
 
-
 	private void savePhoto() {
-    
-        
+    int quality = getQuality(this.strQuality);        
 		File image = null;
         
         Bitmap bmp = this.bmp;
@@ -111,8 +128,12 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 			 * 2.2
 			 */
 			if (check >= 1) {
-				folder = Environment
-					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+				
+				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES;
+
+				if (picfolder != folder){
+					folder = new File(picfolder)				
+				}				
 
 				if(!folder.exists()) {
 					folder.mkdirs();
@@ -121,10 +142,11 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 				folder = Environment.getExternalStorageDirectory();
 			}
 
-			File imageFile = new File(folder, "c2i_" + date.toString() + ".png");
+			File imageFile = new File(folder, "c2i_" + date.toString() + extension);
 
-			FileOutputStream out = new FileOutputStream(imageFile);
-			bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+			CompressFormat compressFormat = (extension.equals(".jpg")) ? Bitmap.CompressFormat.JPEG :Bitmap.CompressFormat.PNG;
+			FileOutputStream out = new FileOutputStream(imageFile);			
+			bmp.compress(compressFormat, quality, out);
 			out.flush();
 			out.close();
 
