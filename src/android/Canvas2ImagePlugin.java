@@ -21,6 +21,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap.CompressFormat;
 
 
 /**
@@ -38,9 +39,9 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
     public static final int WRITE_PERM_REQUEST_CODE = 1;
     private CallbackContext callbackContext;
     private Bitmap bmp;
-		private String extension;
-		private String strQuality;
-		private String picFolder;
+    private String extension;
+    private String strQuality;
+    private String picFolder;
 
 	@Override
 	public boolean execute(String action, JSONArray data,
@@ -51,9 +52,9 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 			String base64 = data.optString(0);
 			this.extension = data.optString(1);
 			this.strQuality = data.optString(2);
-			this.picfolder = Environment.DIRECTORY_PICTURES;
+			this.picFolder = Environment.DIRECTORY_PICTURES;
 			boolean add2Galery = true; // Why is this here, it's never used?
-			if (data.length() > 3) picfolder = data.optString(3);
+			if (data.length() > 3) picFolder = data.optString(3);
 			if (data.length() > 4) add2Galery = Boolean.valueOf(data.optString(4)); // Why is this here, it's never used?
 			if (base64.equals("")) // isEmpty() requires API level 9
 				callbackContext.error("Missing base64 string");
@@ -131,8 +132,8 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
 				
 				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
-				if (picfolder != folder) {
-					folder = new File(picfolder);
+				if (picFolder != folder.toString()) {
+					folder = new File(picFolder);
 				}				
 
 				if(!folder.exists()) {
