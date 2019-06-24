@@ -39,7 +39,7 @@ public class Canvas2ImagePlugin extends CordovaPlugin {
     private CallbackContext callbackContext;
     private Bitmap bmp;
 		private String extension;
-		private Stirng strQuality;
+		private String strQuality;
 		private String picFolder;
 
 	@Override
